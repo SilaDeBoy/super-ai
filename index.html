@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Super AI — Claude-style Chat</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Puter.js for strong models without your own API key -->
+  <script src="https://js.puter.com/v2/"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-icon">✦</span>
+          <span>Super AI</span>
+        </div>
+        <button class="new-chat-btn" id="newChatBtn">+ New chat</button>
+      </div>
+
+      <div class="chat-history" id="chatHistory">
+        <!-- history items will appear here -->
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="settings-btn" id="openSettings">⚙ Settings</button>
+      </div>
+    </aside>
+
+    <!-- Main chat area -->
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn">☰</button>
+        <div class="model-info" id="modelInfo">Puter • Claude-style</div>
+        <div class="status" id="status">Ready</div>
+      </header>
+
+      <div class="messages" id="messages">
+        <div class="welcome" id="welcome">
+          <div class="welcome-icon">✦</div>
+          <h1>How can I help you today?</h1>
+          <p>I can answer questions, write code, explain concepts, and more.</p>
+          <div class="suggestions">
+            <button class="suggestion" data-prompt="Explain quantum computing simply">Explain quantum computing simply</button>
+            <button class="suggestion" data-prompt="Write a Python function to reverse a string">Write a Python function</button>
+            <button class="suggestion" data-prompt="Give me 5 creative startup ideas">Creative startup ideas</button>
+            <button class="suggestion" data-prompt="Help me plan a 3-day trip to Zanzibar">Plan a trip to Zanzibar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div class="input-box">
+          <textarea id="userInput" placeholder="Message Super AI..." rows="1"></textarea>
+          <button id="sendBtn" title="Send">➤</button>
+        </div>
+        <p class="disclaimer">Super AI can make mistakes. Check important information.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal hidden" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button class="close-btn" id="closeSettings">×</button>
+      </div>
+
+      <div class="setting-group">
+        <label>Mode</label>
+        <select id="modeSelect">
+          <option value="puter">Puter.js (Strong models • No API key needed)</option>
+          <option value="api">Custom API Key (Groq / OpenRouter / Gemini)</option>
+          <option value="local">Local Demo (Offline • Limited)</option>
+        </select>
+      </div>
+
+      <div class="setting-group" id="puterSettings">
+        <p class="hint">Uses Puter.js. You (or your visitors) sign in with a free Puter account. Can access Claude, GPT, Gemini and many other strong models.</p>
+        <label>Preferred model (optional)</label>
+        <select id="puterModel">
+          <option value="claude-sonnet-4">Claude Sonnet 4 (recommended)</option>
+          <option value="claude-opus-4">Claude Opus 4</option>
+          <option value="gpt-4o">GPT-4o</option>
+          <option value="gpt-4.1">GPT-4.1</option>
+          <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+          <option value="deepseek-chat">DeepSeek Chat</option>
+        </select>
+      </div>
+
+      <div class="setting-group hidden" id="apiSettings">
+        <p class="hint">Paste a free API key from Groq, OpenRouter, or Google AI Studio. The key stays only in your browser.</p>
+        <label>Provider</label>
+        <select id="apiProvider">
+          <option value="groq">Groq (very fast)</option>
+          <option value="openrouter">OpenRouter (many free models)</option>
+          <option value="gemini">Google Gemini</option>
+        </select>
+        <label>API Key</label>
+        <input type="password" id="apiKey" placeholder="sk-... or your key" />
+        <label>Model (optional)</label>
+        <input type="text" id="apiModel" placeholder="Leave empty for default" />
+      </div>
+
+      <div class="setting-group hidden" id="localSettings">
+        <p class="hint">Works completely offline. This is a lightweight demo mode. For real local models use WebLLM (advanced).</p>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn primary" id="saveSettings">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
