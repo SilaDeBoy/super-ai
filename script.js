@@ -27,7 +27,7 @@ let conversation = [];
 let isGenerating = false;
 let settings = {
   mode: "puter",
-  puterModel: "claude-sonnet-4",
+  puterModel: "claude-3.7-sonnet",
   apiProvider: "groq",
   apiKey: "",
   apiModel: ""
@@ -45,7 +45,7 @@ function saveSettingsToStorage() {
 
 function updateUIFromSettings() {
   modeSelect.value = settings.mode;
-  document.getElementById("puterModel").value = settings.puterModel || "claude-sonnet-4";
+  document.getElementById("puterModel").value = settings.puterModel || "claude-3.7-sonnet";
   document.getElementById("apiProvider").value = settings.apiProvider || "groq";
   document.getElementById("apiKey").value = settings.apiKey || "";
   document.getElementById("apiModel").value = settings.apiModel || "";
@@ -176,34 +176,50 @@ async function callPuter(userMessage) {
     throw new Error("Puter.js failed to load. Check your internet connection.");
   }
 
-  const model = settings.puterModel || "claude-sonnet-4";
+  const modelCandidates = [
+    settings.puterModel || "claude-3.7-sonnet",
+    "gpt-4o",
+    "gemini-2.5-pro"
+  ].filter((model, index, arr) => arr.indexOf(model) === index);
 
-  // Build messages for context
-  const messages = conversation.map(m => ({
-    role: m.role,
-    content: m.content
-  }));
+  let lastError = null;
 
-  const response = await puter.ai.chat(messages, {
-    model: model,
-    stream: false
-  });
+  for (const model of modelCandidates) {
+    try {
+      const messages = conversation.map(m => ({
+        role: m.role,
+        content: m.content
+      }));
 
-  // puter.ai.chat can return different shapes
-  let text = "";
-  if (typeof response === "string") {
-    text = response;
-  } else if (response?.message?.content) {
-    text = response.message.content;
-  } else if (response?.text) {
-    text = response.text;
-  } else if (response?.content) {
-    text = response.content;
-  } else {
-    text = JSON.stringify(response);
+      const response = await puter.ai.chat(messages, {
+        model,
+        stream: false
+      });
+
+      let text = "";
+      if (typeof response === "string") {
+        text = response;
+      } else if (response?.message?.content) {
+        text = response.message.content;
+      } else if (response?.text) {
+        text = response.text;
+      } else if (response?.content) {
+        text = response.content;
+      } else {
+        text = JSON.stringify(response);
+      }
+
+      return text;
+    } catch (error) {
+      lastError = error;
+      const msg = String(error?.message || error || "");
+      if (!msg.toLowerCase().includes("model not found") && !msg.toLowerCase().includes("not found")) {
+        throw error;
+      }
+    }
   }
 
-  return text;
+  throw lastError || new Error("No supported Puter model was available.");
 }
 
 async function callAPI(userMessage) {
@@ -286,23 +302,23 @@ function callLocal(userMessage) {
   const lower = userMessage.toLowerCase();
 
   if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) {
-    return "Hello! I'm Super AI running in **Local Demo** mode.\n\nThis mode works completely offline but has limited intelligence. For real Claude-level answers, switch to **Puter.js** or add a free API key in Settings.";
+    return "Hello! I'm Super AI running in **Local Demo** mode.\n\nThis mode works completely offline but has limited intelligence. For real Claude-level answers, switch to **Puter.js** or add a custom API key.";
   }
 
   if (lower.includes("who are you") || lower.includes("what are you")) {
-    return "I'm **Super AI** — a Claude-style chat interface that can run on GitHub Pages.\n\nRight now you're using the Local Demo mode. You can switch to stronger modes in Settings:\n\n• **Puter.js** — access real Claude, GPT, Gemini models\n• **API Key** — use free keys from Groq, OpenRouter or Gemini";
+    return "I'm **Super AI** — a Claude-style chat interface that can run on GitHub Pages.\n\nRight now you're using the Local Demo mode. You can switch to stronger modes in Settings:\n\n• **Puter.js** for strong models (no key required)\n• **Custom API Key** for Groq/OpenRouter/Gemini";
   }
 
   if (lower.includes("code") || lower.includes("python") || lower.includes("javascript")) {
-    return "In Local Demo mode I can only give basic help.\n\nHere's a simple example:\n\n```python\ndef reverse_string(s):\n    return s[::-1]\n\nprint(reverse_string(\"hello\"))\n```\n\nFor better code help, switch to Puter or API mode in Settings.";
+    return "In Local Demo mode I can only give basic help.\n\nHere's a simple example:\n\n```python\ndef reverse_string(s):\n    return s[::-1]\n\nprint(reverse_string(\"hello\"))\n```\n\nFor better answers, switch to Puter.js or a custom API mode.";
   }
 
   if (lower.includes("help")) {
-    return "I can help with questions, writing, coding ideas, and more — but this Local mode is limited.\n\n**Tip:** Open Settings (bottom left) and choose:\n1. Puter.js for strong models (no key needed from you)\n2. Custom API Key for Groq / OpenRouter / Gemini";
+    return "I can help with questions, writing, coding ideas, and more — but this Local mode is limited.\n\n**Tip:** Open Settings and choose:\n1. Puter.js for strong models\n2. Custom API Key for premium models\n3. Local Demo for offline testing";
   }
 
   // Generic fallback
-  return `You said: "${userMessage}"\n\nI'm currently in **Local Demo** mode, so my answers are limited.\n\nTo get much smarter responses (closer to Claude):\n\n1. Click **Settings** (bottom left)\n2. Choose **Puter.js** or **Custom API Key**\n3. Save and try again\n\nPuter.js is recommended — it needs no API key from you.`;
+  return `You said: "${userMessage}"\n\nI'm currently in **Local Demo** mode, so my answers are limited.\n\nTo get much smarter responses (closer to Claude):\n\n1. Click **Settings** (bottom left)\n2. Choose **Puter.js**\n3. Pick a supported model from the list`;
 }
 
 // ======================
